@@ -18,7 +18,7 @@ def list_likes(user, limit=100, cursor=None):
 
     r = requests.get('https://bsky.social/xrpc/com.atproto.repo.listRecords?' + urllib.parse.urlencode(params))
     if r.status_code // 100 != 2:
-        raise Exception(f'error status code: {r.status_code} {r.text} {params}')
+        raise Exception(f'error status code for list_likes: {r.status_code} {r.text} {params}')
     
     return r.json()
 
@@ -47,7 +47,7 @@ def get_post(uri, cid):
 
     r = requests.get('https://bsky.social/xrpc/com.atproto.repo.getRecord?' + urllib.parse.urlencode(params))
     if r.status_code // 100 != 2:
-        raise Exception(f'error status code: {r.status_code} {r.text} {params}')
+        raise Exception(f'error status code for get_post: {r.status_code} {r.text} {params}')
     
     return r.json()
 
@@ -59,13 +59,15 @@ def get_user(repo):
 
     r = requests.get('https://bsky.social/xrpc/com.atproto.repo.describeRepo?' + urllib.parse.urlencode(params))
     if r.status_code // 100 != 2:
-        raise Exception(f'error status code: {r.status_code} {r.text} {params}')
+        raise Exception(f'error status code for get_user: {r.status_code} {r.text} {params}')
     
     return r.json()
 
 def fetch_likes(user, limit=100, stop_at=None):
+    sleep_time = 0.0005 * limit
     if limit <= 0:
         limit = math.inf
+        sleep_time = 0.001
     chunk_size = min(limit, 100)
     stop_time = arrow.get(stop_at) if stop_at else None
 
@@ -89,17 +91,17 @@ def fetch_likes(user, limit=100, stop_at=None):
                     like['value']['subject'] = post
                     post_uri = AtUri.parse(like['value']['subject']['uri'])
                     try:
-                        user = get_user(post_uri.repo)
-                        if user:
-                            like['value']['user'] = user
-                    except Exception as e:
-                        print(f'could not fetch user: {e}', file=sys.stderr)
+                        post_user = get_user(post_uri.repo)
+                        if post_user:
+                            like['value']['user'] = post_user
+                    except Exception as ue:
+                        print(f'could not fetch user: {ue}', file=sys.stderr)
             except Exception as e:
                 print(f'could not fetch post: {e}', file=sys.stderr)
 
             likes.append(like)
             remaining -= 1
-            time.sleep(0.0005 * limit)
+            time.sleep(sleep_time)
         
         if 'cursor' not in out or out['cursor'] == cursor:
             exit = True

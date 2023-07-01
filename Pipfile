@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 arrow = "*"
 requests = "*"
+pandas = "*"
+numpy = "*"
 
 [dev-packages]
 

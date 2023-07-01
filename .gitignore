@@ -1,0 +1,6 @@
+out*
+skeets*
+*.json
+*.sqlite*
+__pycache__
+*.pyc
