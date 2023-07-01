@@ -1,0 +1,13 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+arrow = "*"
+requests = "*"
+
+[dev-packages]
+
+[scripts]
+export = "python3 export.py"
