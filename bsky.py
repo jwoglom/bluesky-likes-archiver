@@ -2,8 +2,10 @@ import requests
 import arrow
 import math
 import time
+import sys
 import urllib.parse
 from dataclasses import dataclass
+from functools import lru_cache
 
 def list_likes(user, limit=100, cursor=None):
     params = {
@@ -49,6 +51,18 @@ def get_post(uri, cid):
     
     return r.json()
 
+@lru_cache(maxsize=500)
+def get_user(repo):
+    params = {
+        'repo': repo
+    }
+
+    r = requests.get('https://bsky.social/xrpc/com.atproto.repo.describeRepo?' + urllib.parse.urlencode(params))
+    if r.status_code // 100 != 2:
+        raise Exception(f'error status code: {r.status_code} {r.text} {params}')
+    
+    return r.json()
+
 def fetch_likes(user, limit=100, stop_at=None):
     if limit <= 0:
         limit = math.inf
@@ -69,9 +83,20 @@ def fetch_likes(user, limit=100, stop_at=None):
             if stop_time and created_ts <= stop_time:
                 exit = True
                 break
-            post = get_post(like['value']['subject']['uri'], like['value']['subject']['cid'])
-            if post:
-                like['value']['subject'] = post
+            try:
+                post = get_post(like['value']['subject']['uri'], like['value']['subject']['cid'])
+                if post:
+                    like['value']['subject'] = post
+                    post_uri = AtUri.parse(like['value']['subject']['uri'])
+                    try:
+                        user = get_user(post_uri.repo)
+                        if user:
+                            like['value']['user'] = user
+                    except Exception as e:
+                        print(f'could not fetch user: {e}', file=sys.stderr)
+            except Exception as e:
+                print(f'could not fetch post: {e}', file=sys.stderr)
+
             likes.append(like)
             remaining -= 1
             time.sleep(0.0005 * limit)
