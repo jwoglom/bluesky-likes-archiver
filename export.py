@@ -13,7 +13,7 @@ def main(args):
         existing = json.loads(open(args.json_out, 'r').read())
         if not stop_at:
             stop_at = max([i['value']['createdAt'] for i in existing])
-            print(f'Using stop_at from existing JSON: {stop_at}', out=sys.stderr)
+            print(f'Using stop_at from existing JSON: {stop_at}', file=sys.stderr)
         
 
     out = fetch_likes(args.user, limit=args.limit, stop_at=stop_at)
@@ -21,13 +21,13 @@ def main(args):
     if args.json_out:
         total = out + existing
         open(args.json_out, 'w').write(json.dumps(total))
-        print(f'Added {len(out)} items to {len(existing)} items: totaling {len(total)}', out=sys.stderr)
+        print(f'Added {len(out)} items to {len(existing)} items: totaling {len(total)}', file=sys.stderr)
     else:
         print(json.dumps(out))
     
     if args.sqlite_out:
         if not args.json_out:
-            print('Need --json-out in addition to --sqlite-out', out=sys.stderr)
+            print('Need --json-out in addition to --sqlite-out', file=sys.stderr)
             exit(1)
         from export_to_sqlite import export_to_sqlite
         export_to_sqlite(args.json_out, args.sqlite_out, args.sqlite_if_exists)

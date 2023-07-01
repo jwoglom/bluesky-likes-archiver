@@ -95,9 +95,9 @@ def fetch_likes(user, limit=100, stop_at=None):
                         if post_user:
                             like['value']['user'] = post_user
                     except Exception as ue:
-                        print(f'could not fetch user: {ue}\nfrom post: {post}\nfrom like: {like}', file=sys.stderr)
+                        print(f'could not fetch user: {ue}\nfrom post: {post}\nfrom like: {like}\n\n', file=sys.stderr)
             except Exception as e:
-                print(f'could not fetch post: {e}\nfrom like: {like}', file=sys.stderr)
+                print(f'could not fetch post: {e}\nfrom like: {like}\n\n', file=sys.stderr)
 
             likes.append(like)
             remaining -= 1
