@@ -1,6 +1,7 @@
 import requests
 import arrow
 import math
+import time
 import urllib.parse
 from dataclasses import dataclass
 
@@ -35,7 +36,6 @@ class AtUri:
 
 def get_post(uri, cid):
     ref = AtUri.parse(uri)
-
     params = {
         'repo': ref.repo,
         'collection': ref.collection,
@@ -62,17 +62,27 @@ def fetch_likes(user, limit=100, stop_at=None):
     while remaining > 0:
         out = list_likes(user, chunk_size, cursor=cursor)
         new_likes = out.get('records', [])
-        if len(new_likes) == 0 or 'cursor' not in out:
+
+        exit = False
+        for like in new_likes:
+            created_ts = arrow.get(like['value']['createdAt'])
+            if stop_time and created_ts <= stop_time:
+                exit = True
+                break
+            post = get_post(like['value']['subject']['uri'], like['value']['subject']['cid'])
+            if post:
+                like['value']['subject'] = post
+            likes.append(like)
+            remaining -= 1
+            time.sleep(0.0005 * limit)
+        
+        if 'cursor' not in out or out['cursor'] == cursor:
+            exit = True
+        
+        if exit:
             break
 
         cursor = out['cursor']
-
-        for like in new_likes:
-            created_ts = arrow.get(like['value']['createdAt'])
-            if stop_time and created_ts < stop_time:
-                break
-            likes.append(like)
-            remaining -= 1
     
     return likes
 
