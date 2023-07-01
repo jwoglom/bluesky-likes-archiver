@@ -9,7 +9,8 @@ import json
 def export_to_sqlite(json_file, output_file, if_exists='replace'):
     df = pd.json_normalize(json.loads(open(json_file).read()))
     df = df.astype(str)
-    df['value.createdAt', 'value.subject.value.createdAt'] = pd.to_datetime(df['value.createdAt', 'value.subject.value.createdAt'])
+    df['value.createdAt'] = pd.to_datetime(df['value.createdAt'], format='mixed')
+    df['value.subject.value.createdAt'] = pd.to_datetime(df['value.subject.value.createdAt'], format='mixed')
 
     conn = sqlite3.connect(output_file)
     df.to_sql('tweets', conn, if_exists=if_exists)

@@ -31,6 +31,7 @@ def main(args):
             exit(1)
         from export_to_sqlite import export_to_sqlite
         export_to_sqlite(args.json_out, args.sqlite_out, args.sqlite_if_exists)
+        print(f'Exported to sqlite file {args.sqlite_out}', file=sys.stderr)
 
 
 if __name__ == '__main__':
